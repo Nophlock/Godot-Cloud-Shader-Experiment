@@ -1,0 +1,73 @@
+[gd_scene load_steps=9 format=3 uid="uid://bfyb0x77hdt57"]
+
+[ext_resource type="Shader" path="res://shader/cloud_shader.gdshader" id="1_ilq2h"]
+[ext_resource type="ImageTexture3D" path="res://blub.tres" id="2_1ygod"]
+[ext_resource type="Script" path="res://scripts/cloud_shader_updater.gd" id="2_ymoo3"]
+[ext_resource type="Script" path="res://scripts/worley_gpu.gd" id="3_qcmsl"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_213xb"]
+
+[sub_resource type="ImageTexture3D" id="ImageTexture3D_mv1rx"]
+resource_local_to_scene = true
+resource_name = "detailed_clouds"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_efm4a"]
+render_priority = 0
+shader = ExtResource("1_ilq2h")
+shader_parameter/MAIN_LIGHT_COLOR = Vector4(1, 1, 1, 1)
+shader_parameter/MAIN_LIGHT_POSITION = Vector3(29.5526, 4.42453, -22.0749)
+shader_parameter/MAIN_LIGHT_ENERGY = 5.87
+shader_parameter/MAIN_LIGHT_INDIRECT_ENERGY = 4.576
+shader_parameter/BBOX_MIN = Vector3(-17.5536, -10.4128, -38.3828)
+shader_parameter/BBOX_MAX = Vector3(61.4036, -5.80958, 25.0774)
+shader_parameter/DENSITY_MAP = ExtResource("2_1ygod")
+shader_parameter/DETAILED_DENSITY_MAP = SubResource("ImageTexture3D_mv1rx")
+shader_parameter/LIGHT_SUN_ABSORPTION = 0.88
+shader_parameter/LIGHT_VIEWER_ABSORPTION = 0.63
+shader_parameter/DARKNESS_THRESHOLD = 0.05
+shader_parameter/PHASE_VALUE = 0.23
+shader_parameter/CLOUD_RESOLUTION = 40.0
+shader_parameter/LIGHT_RESOLUTION = 8.0
+shader_parameter/CLOUD_SCALE = 2.09
+shader_parameter/CLOUD_DETAIL_SCALE = 4.405
+shader_parameter/CLOUD_OFFSET = Vector3(0, 0, 0)
+shader_parameter/NOISE_WEIGHT = Vector4(2.13, 1.085, 1.21, 1)
+shader_parameter/DETAILED_NOISE_WEIGHT = Vector4(1, 1, 1, 1)
+shader_parameter/DENSITY_MULTIPLIER = 3.255
+shader_parameter/DENSITY_OFFSET = 0.585
+shader_parameter/OFFSET_SPEED = 1.0
+
+[sub_resource type="Environment" id="Environment_eoyk7"]
+background_mode = 1
+
+[node name="main_scene" type="Node3D"]
+
+[node name="cloud_container" type="MeshInstance3D" parent="." node_paths=PackedStringArray("light_source")]
+transform = Transform3D(78.9572, 0, 0, 0, 4.60319, 0, 0, 0, 63.4602, 21.925, -8.11117, -6.65266)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("BoxMesh_213xb")
+surface_material_override/0 = SubResource("ShaderMaterial_efm4a")
+script = ExtResource("2_ymoo3")
+light_source = NodePath("../light")
+
+[node name="worley_noise" type="Node" parent="cloud_container" node_paths=PackedStringArray("node_to_apply")]
+script = ExtResource("3_qcmsl")
+shader_file = "res://shader/worley_compute.glsl"
+node_to_apply = NodePath("..")
+resolution = Vector3i(256, 256, 256)
+channel_r = Vector3i(4, 8, 16)
+channel_g = Vector3i(4, 8, 16)
+channel_b = Vector3i(4, 8, 16)
+channel_a = Vector3i(4, 8, 16)
+persistence = 0.233
+cloud_texture = ExtResource("2_1ygod")
+
+[node name="light" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.341905, -0.874399, 0.344277, 0, 0.366355, 0.930475, -0.939734, 0.318134, -0.125259, 29.5526, 4.42453, -22.0749)
+light_color = Color(0.972549, 0.933333, 0.866667, 1)
+light_energy = 5.87
+light_indirect_energy = 4.576
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_eoyk7")
